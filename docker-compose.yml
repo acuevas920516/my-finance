@@ -11,6 +11,7 @@ services:
       - MYSQL_PASSW=${MYSQL_PASSW}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - DB_SYNC=${DB_SYNC}
+      - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
