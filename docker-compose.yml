@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: yarn run start:dev
+    ports:
+      - ${BACKEND_PORT}:3000
+    networks:
+      - my-finance-network
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: yarn dev
+    ports:
+      - ${FRONTEND_PORT}:4000
+    networks:
+      - my-finance-network
+
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSW}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - ${MYSQL_PORT}:3306
+    networks:
+      - my-finance-network
+
+  rabbitmq:
+    image: rabbitmq:latest
+    environment:
+      - RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSW}
+    ports:
+      - ${RABBIT_PORT}:15672
+    networks:
+      - my-finance-network
+
+  elasticsearch:
+    image: elasticsearch:latest
+    environment:
+      - discovery.type=single-node
+    ports:
+      - ${ELASTIC_PORT}:9200
+    networks:
+      - my-finance-network
+
+networks:
+  my-finance-network:
+
+volumes:
+  mysql-data:
