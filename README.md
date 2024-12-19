@@ -34,11 +34,11 @@ Welcome to My Finance App! This application helps you manage your personal finan
 
 2. Start the application using Docker Compose:
     ```sh
-    docker-compose up
+    docker-compose up -d --build
     ```
 
 3. Access the application:
-    - Frontend: `http://localhost:8080`
+    - Frontend: `http://localhost:4000`
     - Backend: `http://localhost:3000`
 
 ## Contributing
