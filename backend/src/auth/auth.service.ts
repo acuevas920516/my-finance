@@ -1,26 +1,34 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
+import * as bcrypt from 'bcrypt';
+
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-) {}
+  ) {}
 
-  async signIn(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string }> {
-    const user = await this.userService.findOneByEmail(email);
-    if (user?.password !== password) {
-      throw new UnauthorizedException();
+  async validateUser(username: string, pass: string): Promise<any> {
+    const user = await this.userService.findOneByUsername(username);
+
+    const passwordIsEqual = await bcrypt.compare(pass, user.password);
+    if (user && passwordIsEqual) {
+      const { password, initial_budget, isActive, ...result } = user;
+      return result;
     }
+    return null;
+  }
 
-    const payload = { sub: user.id, username: user.email };
+  async login(user: any) {
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: this.jwtService.sign(user),
     };
+  }
+
+  async createUser(user: any) {
+    return this.userService.create(user);
   }
 }

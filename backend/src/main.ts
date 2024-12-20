@@ -1,4 +1,3 @@
-
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -15,8 +14,6 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('', app, documentFactory);
 
-  await app.listen(process.env.PORT ?? 3000, function() {
-    console.log(`${process.env.MYSQL_USER}`);
-  });
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
