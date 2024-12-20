@@ -6,7 +6,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({unique: true})
   username: string;
 
   @Column()
@@ -15,13 +15,13 @@ export class User {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({unique: true})
   email: string;
 
   @Column()
   password: string;
 
-  @Column()
+  @Column({unique: true})
   iban: string;
 
   @Column('decimal', { precision: 6, scale: 2 })

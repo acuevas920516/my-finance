@@ -8,13 +8,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install the application dependencies
-RUN npm install
+RUN yarn
 
 # Copy the rest of the application files
 COPY . .
 
 # Build the NestJS application
-RUN npm run build
+RUN yarn run build
 
 # Expose the application port
 EXPOSE 3000
