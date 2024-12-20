@@ -9,9 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guards';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { UserDto } from './dtos/user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,17 +27,20 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @ApiBearerAuth()
   getProfile(@Request() req) {
     return req.user;
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('signin')
-  signin(@Request() req, @Body() body) {
-    return this.authService.createUser(body);
+  @ApiBearerAuth()
+  @Get('signup')
+  signin(@Request() req, @Body() userDto: UserDto) {
+    return this.authService.createUser(userDto);
   }
 
   @UseGuards(LocalAuthGuard)
+  @ApiBearerAuth()
   @Post('auth/logout')
   async logout(@Request() req) {
     return req.logout();
