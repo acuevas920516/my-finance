@@ -63,7 +63,6 @@ services:
   elasticsearch:
     image: elasticsearch:8.17.0
     container_name: elasticsearch
-    container_name: elasticsearch
     environment:
       - discovery.type=single-node
     ports:
