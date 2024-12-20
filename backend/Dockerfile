@@ -5,13 +5,17 @@ FROM node:lts-alpine
 WORKDIR /usr/src/app
 
 # Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+COPY package*.json yarn.lock ./
 
 # Install the application dependencies
 RUN yarn
 
 # Copy the rest of the application files
 COPY . .
+
+RUN chown -R node:node /usr/src/app
+
+USER node
 
 # Build the NestJS application
 RUN yarn run build
