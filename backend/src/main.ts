@@ -6,12 +6,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('My Finance API')
-    .setDescription('API for My Finance`s project')
+    .setTitle('Eurotax API')
+    .setDescription('Eurotax API for Sumauto uses')
     .setVersion('1.0')
     .addTag('API')
     .addBearerAuth()
     .build();
+
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('', app, documentFactory);
 

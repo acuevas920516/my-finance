@@ -16,24 +16,67 @@ services:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     command: yarn run start:dev
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     ports:
       - ${BACKEND_PORT}:3000
     networks:
-      - my-finance-network
+      - eurotax
+  sqlserver:
+      image: mcr.microsoft.com/mssql/server:2022-latest
+      environment:
+        ACCEPT_EULA: "Y"
+        MSSQL_SA_PASSWORD: ${DB_PASSWORD:-YourStrong@Passw0rd}
+      ports:
+        - "${DB_PORT:-1433}:1433"
+      volumes:
+        - ./sql-server/data:/var/opt/mssql
+        - ./sql-server/scripts:/scripts
+      healthcheck:
+        test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1"]
+        interval: 10s
+        timeout: 5s
+        retries: 12
+        start_period: 40s
+      restart: unless-stopped
+      networks:
+        - eurotax
 
-  frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-YourStrong@Passw0rd}
     volumes:
-      - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
-    command: yarn dev --host --port 4000
-    ports:
-      - ${FRONTEND_PORT}:4000
+      - ./sql-server/scripts:/scripts
+    entrypoint: /bin/bash
+    command: >
+      -c "
+      echo 'Waiting for SQL Server to be ready...' &&
+      counter=0 &&
+      until /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' 2>/dev/null; do
+        counter=$$((counter + 1)) &&
+        if [ $$counter -gt 30 ]; then
+          echo 'Timeout waiting for SQL Server' &&
+          exit 1
+        fi &&
+        echo 'Still waiting...' &&
+        sleep 2
+      done &&
+      echo '${MSSQL_SA_PASSWORD}' &&
+      echo 'SQL Server is ready. Creating database...' &&
+      /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P '${MSSQL_SA_PASSWORD}' -C -i /scripts/init-db.sql &&
+      echo 'Database initialization complete.'
+      "
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
-      - my-finance-network
+      - eurotax
 
   mysql:
     image: mysql:latest
@@ -47,7 +90,7 @@ services:
     ports:
       - ${MYSQL_PORT}:3306
     networks:
-      - my-finance-network
+      - eurotax
 
   rabbitmq:
     image: rabbitmq:management-alpine
@@ -58,7 +101,7 @@ services:
     ports:
       - ${RABBIT_PORT}:15672
     networks:
-      - my-finance-network
+      - eurotax
 
   elasticsearch:
     image: elasticsearch:8.17.0
@@ -68,10 +111,10 @@ services:
     ports:
       - ${ELASTIC_PORT}:9200
     networks:
-      - my-finance-network
+      - eurotax
 
 networks:
-  my-finance-network:
+  eurotax:
 
 volumes:
   mysql-data:
